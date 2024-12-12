@@ -4,11 +4,11 @@
   "ADMINS": [
     ""
   ],
-  "BOTNAME": "BOTNAME",
+  "BOTNAME": "Suva Ai",
   "PREFIX": "/",
   "THEME_SETUP": {
     "THEME": "Fiery",
-    "ADMIN": "Your Name",
+    "ADMIN": "Mahi Alt",
     "TITLE": "PAGEBOT",
     "HTML": [
       "#CE2F16",
