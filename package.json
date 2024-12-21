@@ -1,21 +1,23 @@
 {
-  "name": "Pagebot",
+  "name": "Suva-AI",
   "version": "1.0.4",
   "description": "A simple starting point for Facebook Business Pagebot Developers",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "YanMaglinte",
+    "Suva-AI",
     "Facebook",
     "Business",
-    "Pagebot"
+    "SuvaAI",
+    "NtfSadnan",
+    "Mubtasim Hasan"
   ],
-  "author": "Yan Maglinte",
+  "author": "NTFxMubTaXim",
   "license": "MIT",
   "dependencies": {
+    "@google/generative-ai": "^0.21.0",
     "@types/node": "^18.0.6",
     "axios": "^1.7.7",
     "body-parser": "^1.20.3",
