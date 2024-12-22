@@ -6,8 +6,11 @@ const path = require("path");
 const app = express();
 const fs = require("fs").promises;
 
+const PORT = process.env.PORT || 8080; // Use Heroku's $PORT or default to 8080
+
 app.use('/cache', express.static(path.join(__dirname, 'cache')));
 app.use('/tmp', express.static(path.join(__dirname, 'tmp')));
+
 
 app.use(parser.json());
 app.use(express.static("website"));
@@ -29,6 +32,7 @@ setTimeout(() => {
     res.sendStatus(200);
   });
 }, 5000);
+
 
 // Get JSON file names
 app.get('/api/json-files', async (req, res) => {
@@ -84,7 +88,6 @@ app.delete('/api/delete-cache-images', async (req, res) => {
 });
 
 
-
-app.listen(8080, () => {
-  web.log();
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`); // Update log message for debugging
 });
