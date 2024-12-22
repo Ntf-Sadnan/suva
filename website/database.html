@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Explorer</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 20px;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        h1, h2 {
+            color: #ffffff;
+        }
+
+        #json-files, #image-container {
+            background-color: #333;
+            border: 1px solid #444;
+            border-radius: 5px;
+            padding: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #json-files ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #json-files li, .image-thumbnail {
+            margin-bottom: 10px;
+            cursor: pointer;
+            color: #ffffff;
+            text-decoration: underline;
+            transition: color 0.3s;
+        }
+
+        #json-files li:hover, .image-thumbnail:hover {
+            color: #ffd3ba;
+        }
+
+        #json-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #222;
+            padding: 20px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            max-height: 90vh;
+            max-width: 90vw;
+            overflow: auto;
+            
+            color: #e0e0e0;
+        }
+
+        #json-popup-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+
+        #json-popup-content {
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+
+        #json-popup-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            color: #ff4500;
+            font-size: 1.2em;
+        }
+
+        #image-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: flex-start;
+            align-items: flex-start;
+        }
+
+        .image-thumbnail {
+            cursor: pointer;
+            border: 1px solid #444;
+            border-radius: 5px;
+            box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-thumbnail img {
+            display: block;
+            max-width: 150px;
+            max-height: 150px;
+            border-radius: 5px;
+        }
+
+        #full-image-popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1001;
+            overflow: auto;
+            text-align: center;
+        }
+
+        #full-image-popup-content {
+            display: inline-block;
+            margin-top: 20px;
+            max-width: 95%;
+            max-height: 90%;
+        }
+
+        #full-image-popup img {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 5px;
+        }
+
+        #full-image-name {
+            color: white;
+            margin-top: 10px;
+        }
+
+        #full-image-popup-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 2em;
+            cursor: pointer;
+        }
+
+        #dustbin-button {
+            background-color: #ff4500;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            margin-left: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        #dustbin-button:hover {
+            background-color: #ff6347;
+        }
+    </style>
+</head>
+<body>
+    <h1>File Explorer</h1>
+
+    <h2>Chat histories in /tmp</h2>
+    <div id="json-files">
+        
+        <ul id="json-file-list"></ul>
+    </div>
+
+    <div id="json-popup">
+        <span id="json-popup-close">❌</span>
+        <div id="json-popup-title"></div>
+        <pre id="json-popup-content"></pre>
+    </div>
+
+    <h2>Images in /cache <button id="dustbin-button">🗑️ Delete All Images</button></h2>
+    <div id="image-container">
+        <p>Loading images...</p>
+    </div>
+
+    <div id="full-image-popup">
+        <span id="full-image-popup-close">❌</span>
+        <div id="full-image-popup-content">
+            <img src="" alt="" id="full-image">
+            <div id="full-image-name"></div>
+        </div>
+    </div>
+
+    <script>
+        const jsonFileList = document.getElementById('json-file-list');
+        const jsonPopup = document.getElementById('json-popup');
+        const jsonPopupTitle = document.getElementById('json-popup-title');
+        const jsonPopupContent = document.getElementById('json-popup-content');
+        const jsonPopupClose = document.getElementById('json-popup-close');
+        const imageContainer = document.getElementById('image-container');
+        const fullImagePopup = document.getElementById('full-image-popup');
+        const fullImage = document.getElementById('full-image');
+        const fullImageName = document.getElementById('full-image-name');
+        const fullImagePopupClose = document.getElementById('full-image-popup-close');
+        const dustbinButton = document.getElementById('dustbin-button');
+
+        // --- Fetch JSON File Names ---
+        async function loadJsonFiles() {
+            try {
+                const response = await fetch('/api/json-files');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const jsonFiles = await response.json();
+
+                jsonFileList.innerHTML = '';
+
+                jsonFiles.forEach(filename => {
+                    const li = document.createElement('li');
+                    li.textContent = filename;
+                    li.addEventListener('click', () => loadJsonContent(filename));
+                    jsonFileList.appendChild(li);
+                });
+            } catch (error) {
+                console.error("Error fetching JSON files:", error);
+                jsonFileList.innerHTML = '<p style="color: red;">Error loading JSON file names.</p>';
+            }
+        }
+
+        // --- Fetch and Display JSON Content ---
+        async function loadJsonContent(filename) {
+            try {
+                const response = await fetch(`/api/json-content/${filename}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const content = await response.text();
+                jsonPopupTitle.textContent = `JSON File: ${filename}`;
+                jsonPopupContent.textContent = content;
+                jsonPopup.style.display = 'block';
+            } catch (error) {
+                console.error("Error fetching JSON content:", error);
+                jsonPopupTitle.textContent = `Error Loading JSON File`;
+                jsonPopupContent.textContent = `Error loading content for ${filename}.`;
+                jsonPopup.style.display = 'block';
+            }
+        }
+
+        // --- Fetch and Display Images Side-by-Side ---
+        async function loadImages() {
+            try {
+                const response = await fetch('/api/image-files');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const imageFiles = await response.json();
+                imageContainer.innerHTML = ''; // Clear loading message
+
+                imageFiles.forEach(filename => {
+                    const imageDiv = document.createElement('div');
+                    imageDiv.classList.add('image-thumbnail');
+
+                    const img = document.createElement('img');
+                    img.src = `../cache/${filename}`;
+                    img.alt = filename;
+                    img.onload = () => { /* Optional: Handle image loading */ };
+                    img.onerror = () => { console.error(`Error loading image: ../cache/${filename}`); };
+
+                    imageDiv.appendChild(img);
+                    imageDiv.addEventListener('click', () => openFullImage(filename));
+                    imageContainer.appendChild(imageDiv);
+                });
+
+            } catch (error) {
+                console.error("Error fetching image files:", error);
+                imageContainer.innerHTML = '<p style="color: red;">Error loading images.</p>';
+            }
+        }
+
+        // --- Open Full Image Popup ---
+        function openFullImage(filename) {
+            fullImage.src = `../cache/${filename}`;
+            fullImage.alt = filename;
+            fullImageName.textContent = filename;
+            fullImagePopup.style.display = 'block';
+        }
+
+        // --- Close JSON Popup ---
+        jsonPopupClose.addEventListener('click', () => {
+            jsonPopup.style.display = 'none';
+        });
+
+        // --- Close Full Image Popup ---
+        fullImagePopupClose.addEventListener('click', () => {
+            fullImagePopup.style.display = 'none';
+        });
+
+        // --- Handle clicks outside the JSON popup ---
+        window.addEventListener('click', (event) => {
+            if (event.target === jsonPopup) {
+                jsonPopup.style.display = 'none';
+            }
+            if (event.target === fullImagePopup) {
+                fullImagePopup.style.display = 'none';
+            }
+        });
+
+        // --- Delete All Images in Cache ---
+        dustbinButton.addEventListener('click', async () => {
+            if (confirm('Are you sure you want to delete all images in the cache? This action cannot be undone.')) {
+                try {
+                    const response = await fetch('/api/delete-cache-images', {
+                        method: 'DELETE'
+                    });
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    alert('All images in the cache have been deleted.');
+                    loadImages(); // Reload images to reflect the deletion
+                } catch (error) {
+                    console.error("Error deleting images:", error);
+                    alert('Failed to delete images. Please try again.');
+                }
+            }
+        });
+
+        // --- Load data on page load ---
+        window.onload = () => {
+            loadJsonFiles();
+            loadImages();
+        };
+    </script>
+</body>
+</html>
