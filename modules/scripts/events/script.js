@@ -89,7 +89,8 @@ module.exports.run = async function ({ event }) {
     //new user greeting blah blah 
     let history = loadHistory(userId);
     if (history.length === 0) {
-      //test
+      //test 
+      /*
       api.graph({
         recipient: {
             id: userId, // Replace with the user's PSID
@@ -126,7 +127,7 @@ module.exports.run = async function ({ event }) {
         .catch((err) => console.error("Error sending media template:", err));
       
     }
-
+*/
     
     //if voice
     if (event.type === "attachments" && event.message.attachments[0].type === "audio") {
