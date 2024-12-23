@@ -3,6 +3,11 @@
   "version": "1.0.4",
   "description": "A simple starting point for Facebook Business Pagebot Developers",
   "main": "index.js",
+  "engins": {
+    "node": "20.18.1",
+    "npm": "10.8.2"
+  },
+
   "scripts": {
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
