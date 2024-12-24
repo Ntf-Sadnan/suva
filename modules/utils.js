@@ -50,7 +50,7 @@ async function log(event) {
        console.log(`${theme.gradient.multiline(piece)}: ${senderId} removed a reaction to a message. ${theme.color((await getEventType(event)).toUpperCase())}`)
     }
   } else if (event?.message?.is_echo && !config.selfListen) {
-    console.log(`${theme.gradient.multiline("BOT")}: ${event?.message?.text || event?.message?.attachments?.[0].title || event?.message?.attachments[0]?.payload.url || null } ${theme.color((await getEventType(event)).toUpperCase())}`);
+    //console.log(`${theme.gradient.multiline("BOT")}: ${event?.message?.text || event?.message?.attachments?.[0].title || event?.message?.attachments[0]?.payload.url || null } ${theme.color((await getEventType(event)).toUpperCase())}`);
   } else if (event.type === "attachments") {
     console.log(`${theme.gradient.multiline(piece)}: ${event?.message?.attachments[0]?.payload.url || null} ${theme.color((await getEventType(event)).toUpperCase())}`)
   } else if (event.type === "postback") {
